@@ -1,0 +1,65 @@
+project:
+  name: robotics_harness
+  default_ros_domain_id: 42
+  default_rmw_implementation: rmw_fastrtps_cpp
+
+groups:
+  robots:
+    - atlas
+    - vector
+  all:
+    - nexus
+    - atlas
+    - vector
+
+devices:
+  nexus:
+    ssh_host: nexus
+    arch: x86_64
+    role: ground_station_teleop_heavy_compute
+    ros_distro: jazzy
+    remote_ws: ~/robotics_ws
+    build_jobs: 0
+    deploy_packages:
+      include_groups:
+        - shared
+        - nexus
+      include_packages: []
+      exclude_packages: []
+
+  atlas:
+    ssh_host: atlas
+    arch: arm64
+    role: mobile_robot_edge
+    ros_distro: jazzy
+    remote_ws: ~/robotics_ws
+    build_jobs: 2
+    deploy_packages:
+      include_groups:
+        - shared
+        - robots
+        - atlas
+      include_packages: []
+      exclude_packages: []
+
+  vector:
+    ssh_host: vector
+    arch: arm64
+    role: mobile_robot_edge
+    ros_distro: jazzy
+    remote_ws: ~/robotics_ws
+    build_jobs: 2
+    deploy_packages:
+      include_groups:
+        - shared
+        - robots
+        - vector
+      include_packages: []
+      exclude_packages: []
+
+package_groups:
+  shared: []
+  nexus: []
+  robots: []
+  atlas: []
+  vector: []
