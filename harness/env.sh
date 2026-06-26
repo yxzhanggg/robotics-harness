@@ -10,7 +10,7 @@ export HARNESS_DIR
 export PROJECT_ROOT="$(cd "${HARNESS_DIR}/.." && pwd)"
 export LOCAL_ROS_WS="${PROJECT_ROOT}/ros2_ws"
 export LOCAL_ROS_SRC="${LOCAL_ROS_WS}/src"
-export DEFAULT_REMOTE_WS="~/robotics_ws"
+export DEFAULT_REMOTE_WS="/home/zyx/robotics_ws"
 export INVENTORY_FILE="${HARNESS_DIR}/inventory.yaml"
 export RSYNC_EXCLUDE_FILE="${HARNESS_DIR}/rsync-exclude.txt"
 

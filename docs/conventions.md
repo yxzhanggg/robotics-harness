@@ -24,6 +24,18 @@ Use C++ for high-rate drivers, control loops, performance-sensitive perception, 
 4. Add any system dependencies to the package manifest so `rosdep install --from-paths src --ignore-src -y` can resolve them.
 5. Run `make check DEV=<device|group>` for every affected target group.
 
+Current teleoperation packages are deployment examples:
+
+- `teleop_joy` belongs to the `nexus` package group.
+- `cmd_vel_watchdog` belongs to the `robots` package group.
+- No `robot_interfaces` package exists yet because the teleoperation path uses standard `geometry_msgs/msg/Twist`.
+
+## Command Velocity Safety
+
+`/cmd_vel` is operator intent and is not a safe actuator input.
+
+Execution-side drivers must subscribe only to `/cmd_vel_safe`, after commands pass through `cmd_vel_watchdog`. Drivers must never subscribe directly to `/cmd_vel`.
+
 ## Configuration Layering
 
 Load `config/shared/` defaults first. Load `config/per_robot/<device>/` overrides second. Do not put robot-specific calibration in shared config.

@@ -18,6 +18,8 @@ Verify real cross-machine ROS2 DDS discovery:
 make discovery
 ```
 
+The discovery check uses only ros-base-compatible `ros2 topic pub/echo` and `std_msgs/msg/String`.
+
 Deploy source mirrors:
 
 ```bash
@@ -54,7 +56,7 @@ The scaffold creates reserved panes only. It does not start real teleop, driver,
 
 ## File Synchronization
 
-Edit only on macOS under `ros2_ws/src/`. The remote path `~/robotics_ws/src/` is a read-only mirror populated by `harness/deploy.sh` through rsync over SSH.
+Edit only on macOS under `ros2_ws/src/`. The remote path `/home/zyx/robotics_ws/src/` is a read-only mirror populated by `harness/deploy.sh` through rsync over SSH.
 
 Never copy `build/`, `install/`, or `log/` between machines. `nexus` is x86_64, while `atlas` and `vector` are arm64.
 

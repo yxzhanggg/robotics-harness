@@ -18,7 +18,8 @@ devices:
     arch: x86_64
     role: ground_station_teleop_heavy_compute
     ros_distro: jazzy
-    remote_ws: ~/robotics_ws
+    ros_variant: desktop
+    remote_ws: /home/zyx/robotics_ws
     build_jobs: 0
     deploy_packages:
       include_groups:
@@ -32,7 +33,8 @@ devices:
     arch: arm64
     role: mobile_robot_edge
     ros_distro: jazzy
-    remote_ws: ~/robotics_ws
+    ros_variant: base
+    remote_ws: /home/zyx/robotics_ws
     build_jobs: 2
     deploy_packages:
       include_groups:
@@ -47,7 +49,8 @@ devices:
     arch: arm64
     role: mobile_robot_edge
     ros_distro: jazzy
-    remote_ws: ~/robotics_ws
+    ros_variant: base
+    remote_ws: /home/zyx/robotics_ws
     build_jobs: 2
     deploy_packages:
       include_groups:
@@ -59,7 +62,9 @@ devices:
 
 package_groups:
   shared: []
-  nexus: []
-  robots: []
+  nexus:
+    - teleop_joy
+  robots:
+    - cmd_vel_watchdog
   atlas: []
   vector: []

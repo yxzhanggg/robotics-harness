@@ -9,7 +9,7 @@ usage() {
   cat <<'EOF'
 Usage: harness/deploy.sh [--dry-run] <device|group>
 
-Synchronize local ros2_ws/src/ to the target ~/robotics_ws/src/.
+Synchronize local ros2_ws/src/ to the target /home/zyx/robotics_ws/src/.
 EOF
 }
 
@@ -45,6 +45,7 @@ deploy_device() {
   local host
   local remote_ws
   local remote_ws_expr
+  local remote_rsync_ws
   local packages=()
   local pkg
   local rsync_args=()
@@ -52,6 +53,7 @@ deploy_device() {
   host="$(ssh_host_for "${device}")"
   remote_ws="$(remote_ws_for "${device}")"
   remote_ws_expr="$(remote_path_expr "${remote_ws}")"
+  remote_rsync_ws="$(remote_rsync_path "${host}" "${remote_ws}")"
 
   info "${device}: preparing remote source directory"
   ssh_bash "${host}" "set -euo pipefail; mkdir -p ${remote_ws_expr}/src"
@@ -68,7 +70,7 @@ deploy_device() {
 
   if [[ "${#packages[@]}" -eq 0 ]]; then
     info "${device}: deploy policy has no package filter yet; syncing full source tree"
-    rsync "${rsync_args[@]}" "${LOCAL_ROS_SRC}/" "${host}:${remote_ws}/src/"
+    rsync "${rsync_args[@]}" "${LOCAL_ROS_SRC}/" "${host}:${remote_rsync_ws}/src/"
   else
     info "${device}: syncing selected packages: $(join_by_space "${packages[@]}")"
     local tmpdir
@@ -79,13 +81,14 @@ deploy_device() {
       [[ -e "${LOCAL_ROS_SRC}/${pkg}" ]] || die "${device}: selected package does not exist locally: ${pkg}"
       rsync -a "--exclude-from=${RSYNC_EXCLUDE_FILE}" "${LOCAL_ROS_SRC}/${pkg}" "${tmpdir}/src/"
     done
-    rsync "${rsync_args[@]}" "${tmpdir}/src/" "${host}:${remote_ws}/src/"
+    rsync "${rsync_args[@]}" "${tmpdir}/src/" "${host}:${remote_rsync_ws}/src/"
   fi
 
   pass "${device}: deploy complete"
 }
 
-for device in $(expand_targets "${TARGET}"); do
+TARGETS="$(expand_targets "${TARGET}")"
+for device in ${TARGETS}; do
   deploy_device "${device}"
 done
 

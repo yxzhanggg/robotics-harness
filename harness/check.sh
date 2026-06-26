@@ -10,6 +10,7 @@ TARGET="${1:-}"
 
 local_lint() {
   info "local: running best-effort lint"
+  export PYTHONPYCACHEPREFIX="${TMPDIR:-/tmp}/robotics_harness_pycache"
 
   if command -v shellcheck >/dev/null 2>&1; then
     shellcheck "${SCRIPT_DIR}"/*.sh

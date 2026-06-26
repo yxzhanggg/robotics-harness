@@ -293,6 +293,10 @@ device_ros_distro() {
   device_value "$1" "ros_distro"
 }
 
+device_ros_variant() {
+  device_value "$1" "ros_variant"
+}
+
 device_build_jobs() {
   device_value "$1" "build_jobs"
 }
@@ -325,19 +329,11 @@ list_contains() {
   local needle="$1"
   shift
   local item
+  [[ "$#" -gt 0 ]] || return 1
   for item in "$@"; do
     [[ "${item}" == "${needle}" ]] && return 0
   done
   return 1
-}
-
-append_unique() {
-  local needle="$1"
-  shift
-  if list_contains "${needle}" "$@"; then
-    return 1
-  fi
-  printf '%s\n' "${needle}"
 }
 
 device_selected_packages() {
@@ -351,7 +347,7 @@ device_selected_packages() {
     [[ -z "${group}" ]] && continue
     while IFS= read -r pkg; do
       [[ -z "${pkg}" ]] && continue
-      if ! list_contains "${pkg}" "${selected[@]}"; then
+      if [[ "${#selected[@]}" -eq 0 ]] || ! list_contains "${pkg}" "${selected[@]}"; then
         selected+=("${pkg}")
       fi
     done < <(package_group_members "${group}")
@@ -359,7 +355,7 @@ device_selected_packages() {
 
   while IFS= read -r pkg; do
     [[ -z "${pkg}" ]] && continue
-    if ! list_contains "${pkg}" "${selected[@]}"; then
+    if [[ "${#selected[@]}" -eq 0 ]] || ! list_contains "${pkg}" "${selected[@]}"; then
       selected+=("${pkg}")
     fi
   done < <(device_deploy_include_packages "${device}")
@@ -369,11 +365,13 @@ device_selected_packages() {
     excludes+=("${pkg}")
   done < <(device_deploy_exclude_packages "${device}")
 
-  for pkg in "${selected[@]}"; do
-    if ! list_contains "${pkg}" "${excludes[@]}"; then
-      printf '%s\n' "${pkg}"
-    fi
-  done
+  if [[ "${#selected[@]}" -gt 0 ]]; then
+    for pkg in "${selected[@]}"; do
+      if [[ "${#excludes[@]}" -eq 0 ]] || ! list_contains "${pkg}" "${excludes[@]}"; then
+        printf '%s\n' "${pkg}"
+      fi
+    done
+  fi
 }
 
 package_args_for_device() {
@@ -425,13 +423,13 @@ shell_quote() {
 
 remote_path_expr() {
   local path="$1"
-  if [[ "${path}" == "~" ]]; then
-    printf '$HOME'
-  elif [[ "${path}" == "~/"* ]]; then
-    printf '$HOME/%s' "$(printf '%q' "${path#~/}")"
-  else
-    printf '%q' "${path}"
-  fi
+  printf '%q' "${path}"
+}
+
+remote_rsync_path() {
+  local _host="$1"
+  local path="$2"
+  printf '%s\n' "${path}"
 }
 
 ssh_bash() {
@@ -475,7 +473,7 @@ remote_env_prefix() {
   printf 'export ROS_DOMAIN_ID=%q RMW_IMPLEMENTATION=%q;' "${ROS_DOMAIN_ID}" "${RMW_IMPLEMENTATION}"
 }
 
-remote_ros_source_prefix() {
+ros_env_setup_snippet() {
   local device="$1"
   local distro
   local remote_ws
@@ -485,5 +483,12 @@ remote_ros_source_prefix() {
   remote_ws="$(remote_ws_for "${device}")"
   remote_ws_expr="$(remote_path_expr "${remote_ws}")"
   env_prefix="$(remote_env_prefix)"
-  printf 'set -euo pipefail; %s source /opt/ros/%q/setup.bash; if [ -f %s/install/setup.bash ]; then source %s/install/setup.bash; fi; ' "${env_prefix}" "${distro}" "${remote_ws_expr}" "${remote_ws_expr}"
+  printf '%s set +u; source /opt/ros/%q/setup.bash; if [ -f %s/install/setup.bash ]; then source %s/install/setup.bash; fi; set -u;' "${env_prefix}" "${distro}" "${remote_ws_expr}" "${remote_ws_expr}"
+}
+
+remote_ros_source_prefix() {
+  local device="$1"
+  local setup
+  setup="$(ros_env_setup_snippet "${device}")"
+  printf 'set -euo pipefail; %s ' "${setup}"
 }

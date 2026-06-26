@@ -22,7 +22,14 @@ Targets:
 
 SSH aliases are already configured. Use `ssh nexus`, `ssh atlas`, and `ssh vector`; do not add extra host parameters unless inventory later says so.
 
-All targets run Ubuntu 24.04 with ROS2 Jazzy. The fixed target workspace is `~/robotics_ws`, with source under `~/robotics_ws/src`.
+All targets run Ubuntu 24.04 with ROS2 Jazzy. The fixed target workspace is `/home/zyx/robotics_ws`, with source under `/home/zyx/robotics_ws/src`.
+
+ROS installation variants are role-specific:
+
+- `nexus` runs ROS2 desktop.
+- `atlas` and `vector` run ROS2 ros-base.
+
+Do not assume desktop-only packages exist on edge machines. In particular, do not assume `rviz2`, Gazebo, or `demo_nodes_*` are installed on `atlas` or `vector`. Use ros-base-compatible tools and packages where possible. If a future task truly requires a desktop-only package on an edge machine, explicitly install it there and record the dependency and rationale in inventory/docs.
 
 All machines share `ROS_DOMAIN_ID=42` and default to `RMW_IMPLEMENTATION=rmw_fastrtps_cpp`.
 
@@ -34,7 +41,7 @@ Long-running ROS2 processes are hosted in local tmux sessions on target machines
 
 Codex writes files only on macOS in this repository. ROS2 source lives under `ros2_ws/src/`.
 
-Remote `~/robotics_ws/src/` trees are read-only mirrors populated by `harness/deploy.sh` with rsync over SSH. Do not manually edit remote source. Git history exists only on macOS.
+Remote `/home/zyx/robotics_ws/src/` trees are read-only mirrors populated by `harness/deploy.sh` with rsync over SSH. Do not manually edit remote source. Git history exists only on macOS.
 
 ## Cross-Architecture Rule
 
@@ -80,12 +87,14 @@ Raspberry Pi targets have limited memory. Do not allow default full-core `colcon
 2. Execution-side Raspberry Pi code must include a `cmd_vel` watchdog. If fresh `cmd_vel` messages stop arriving within the configured timeout, the execution side must command zero velocity locally. This watchdog must not depend on `nexus`, because joystick, Bluetooth, WiFi, or ground station failures must not leave a robot moving.
 3. DDS is unauthenticated and unencrypted by default. Any device on the same network can potentially inject or sniff topics. This is acceptable only for trusted development LANs. Production or untrusted networks require SROS2 / DDS-Security.
 
+Execution-side drivers must subscribe to `/cmd_vel_safe`, never directly to `/cmd_vel`. `/cmd_vel` is operator intent and must pass through `cmd_vel_watchdog` on the robot before any actuator or motor driver consumes it.
+
 ## Harness Engineering Principles
 
 - `AGENTS.md` is the context authority for future sessions.
 - A change is not complete until `harness/check.sh <device|group>` passes for the affected device or group.
 - All scripts must be idempotent and return non-zero on failure.
-- Do not modify target system files outside `~/robotics_ws` unless a future task explicitly requests it.
+- Do not modify target system files outside `/home/zyx/robotics_ws` unless a future task explicitly requests it.
 - Destructive operations such as `rm -rf` and rsync `--delete` require defensive checks.
 - Keep versions fixed and avoid unnecessary dependencies.
 - Refer to devices through `harness/inventory.yaml` logical names, not hardcoded hostnames in ad hoc scripts.
@@ -138,11 +147,17 @@ make session-down DEV=<device>
 4. Declare OS dependencies in `package.xml` so `rosdep install --from-paths src --ignore-src -y` works.
 5. Run `make check DEV=<affected-device-or-group>`.
 
+Current deployment examples:
+
+- `teleop_joy` is in the `nexus` package group because joystick input and teleoperation run on the ground station.
+- `cmd_vel_watchdog` is in the `robots` package group because safety gating must run on `atlas` and `vector`.
+- A shared `robot_interfaces` package has not been created yet; the current teleoperation path uses standard `geometry_msgs/msg/Twist`.
+
 ## ROS_DOMAIN_ID And DDS Discovery
 
 All devices use `ROS_DOMAIN_ID=42`. Runtime ROS2 communication uses native DDS discovery on the LAN, not SSH tunnels.
 
-Use `harness/discovery-test.sh` or `make discovery` to verify real cross-machine topic discovery with `demo_nodes_cpp` talker/listener. If this fails while SSH works, suspect multicast isolation on the WiFi/AP. Future mitigation should use FastDDS Discovery Server or static peer configuration, wired through `harness/env.sh` and inventory-managed deployment conventions.
+Use `harness/discovery-test.sh` or `make discovery` to verify real cross-machine topic discovery with ros-base-compatible `ros2 topic pub/echo` and `std_msgs/msg/String`. Do not use `demo_nodes_*` for this harness check because edge machines run ros-base. If discovery fails while SSH works, suspect multicast isolation on the WiFi/AP. Future mitigation should use FastDDS Discovery Server or static peer configuration, wired through `harness/env.sh` and inventory-managed deployment conventions.
 
 ## Maintenance Discipline
 
@@ -155,7 +170,7 @@ Keep `.gitignore` and `harness/rsync-exclude.txt` aligned when metadata or build
 ## Do Not Touch Without Explicit Request
 
 - Do not install packages on target machines.
-- Do not edit target files outside `~/robotics_ws`.
+- Do not edit target files outside `/home/zyx/robotics_ws`.
 - Do not add ROS2 robot nodes or example packages.
 - Do not copy build artifacts across architectures.
 - Do not replace tmux with systemd until requested.

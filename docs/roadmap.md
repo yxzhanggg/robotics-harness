@@ -1,9 +1,12 @@
 # Roadmap
 
-Planned but intentionally not implemented in this scaffold:
+## Implemented
 
 - Teleoperation package using `joy` and `teleop_twist_joy`.
-- Execution-side `cmd_vel` watchdog node.
+- Execution-side `cmd_vel` watchdog node publishing `/cmd_vel_safe`.
+
+## Planned But Not Implemented
+
 - Multi-machine launch orchestration.
 - Machine-specific calibration and parameter files.
 - Centralized log collection.

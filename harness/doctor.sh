@@ -26,19 +26,23 @@ check_device() {
   local device="$1"
   local host
   local distro
+  local ros_variant
   local arch_expected
   local role
   local remote_ws
   local remote_ws_expr
+  local ros_setup
   local ctl_time
   local remote_report
 
   host="$(ssh_host_for "${device}")"
   distro="$(device_ros_distro "${device}")"
+  ros_variant="$(device_ros_variant "${device}")"
   arch_expected="$(device_arch "${device}")"
   role="$(device_role "${device}")"
   remote_ws="$(remote_ws_for "${device}")"
   remote_ws_expr="$(remote_path_expr "${remote_ws}")"
+  ros_setup="$(ros_env_setup_snippet "${device}")"
 
   info "${device}: checking ${host} (${role})"
   if ! device_online "${device}"; then
@@ -49,11 +53,15 @@ check_device() {
   ctl_time="$(controller_epoch)"
   remote_report="$(ssh_bash "${host}" "set -euo pipefail
 if [ -d /opt/ros/${distro} ]; then echo ROS_DIR=present; else echo ROS_DIR=missing; fi
-if [ -f /opt/ros/${distro}/setup.bash ]; then source /opt/ros/${distro}/setup.bash; fi
+if [ -f /opt/ros/${distro}/setup.bash ]; then ${ros_setup} fi
 echo ROS_DISTRO=\${ROS_DISTRO:-unset}
 echo RMW_IMPLEMENTATION=\${RMW_IMPLEMENTATION:-unset}
 echo ROS_DOMAIN_ID=\${ROS_DOMAIN_ID:-unset}
 echo ARCH=\$(uname -m)
+echo ROS_VARIANT_EXPECTED=${ros_variant}
+if command -v rviz2 >/dev/null 2>&1; then echo RVIZ2=present; else echo RVIZ2=missing; fi
+if ros2 interface show std_msgs/msg/String >/dev/null 2>&1; then echo STD_MSGS_STRING=present; else echo STD_MSGS_STRING=missing; fi
+if ros2 topic --help >/dev/null 2>&1; then echo ROS2_TOPIC_CLI=present; else echo ROS2_TOPIC_CLI=missing; fi
 echo EPOCH=\$(date +%s)
 if command -v rosdep >/dev/null 2>&1; then echo ROSDEP_CMD=present; else echo ROSDEP_CMD=missing; fi
 if [ -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then echo ROSDEP_INIT=present; else echo ROSDEP_INIT=missing; fi
@@ -90,6 +98,28 @@ echo META_COUNT=\${META_COUNT}
       fail "${device}: architecture ${remote_arch:-unknown} does not match inventory ${arch_expected}"
       ;;
   esac
+
+  pass "${device}: inventory ros_variant=${ros_variant}"
+  case "${ros_variant}" in
+    desktop)
+      grep -q '^RVIZ2=present$' <<<"${remote_report}" \
+        && pass "${device}: desktop marker rviz2 present" \
+        || warn "${device}: inventory expects desktop ROS install, but rviz2 was not found"
+      ;;
+    base)
+      pass "${device}: ros-base target; desktop-only packages are not assumed"
+      ;;
+    *)
+      warn "${device}: unknown ros_variant=${ros_variant:-unset} in inventory"
+      ;;
+  esac
+
+  grep -q '^STD_MSGS_STRING=present$' <<<"${remote_report}" \
+    && pass "${device}: std_msgs/msg/String available" \
+    || fail "${device}: std_msgs/msg/String missing"
+  grep -q '^ROS2_TOPIC_CLI=present$' <<<"${remote_report}" \
+    && pass "${device}: ros2 topic CLI available" \
+    || fail "${device}: ros2 topic CLI missing"
 
   local remote_domain
   remote_domain="$(awk -F= '/^ROS_DOMAIN_ID=/{print $2}' <<<"${remote_report}")"
@@ -161,7 +191,8 @@ echo META_COUNT=\${META_COUNT}
   esac
 }
 
-for device in $(expand_targets "${TARGET}"); do
+TARGETS="$(expand_targets "${TARGET}")"
+for device in ${TARGETS}; do
   check_device "${device}"
 done
 

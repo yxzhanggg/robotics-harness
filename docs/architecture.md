@@ -10,7 +10,7 @@ This repository is the macOS-side authority for a ROS2 Jazzy multi-robot teleope
 | `atlas` | Raspberry Pi | arm64 | Mobile robot edge node for sensors, actuators, and motors |
 | `vector` | Raspberry Pi | arm64 | Mobile robot edge node for sensors, actuators, and motors |
 
-All devices run Ubuntu 24.04 with ROS2 Jazzy. They share `ROS_DOMAIN_ID=42` and use `RMW_IMPLEMENTATION=rmw_fastrtps_cpp` by default.
+All devices run Ubuntu 24.04 with ROS2 Jazzy. `nexus` uses the desktop ROS variant. `atlas` and `vector` use ros-base, so desktop-only packages such as RViz, Gazebo, and `demo_nodes_*` must not be assumed on edge machines. All devices share `ROS_DOMAIN_ID=42` and use `RMW_IMPLEMENTATION=rmw_fastrtps_cpp` by default.
 
 ## Control And Execution Planes
 
@@ -34,7 +34,7 @@ The scaffold intentionally does not implement teleop, watchdog, driver, or algor
 
 1. Edit files only on macOS under `ros2_ws/src/`.
 2. Run `harness/deploy.sh <device|group>` or `make deploy DEV=<device|group>`.
-3. The script uses rsync over SSH to mirror source into `~/robotics_ws/src/` on targets.
+3. The script uses rsync over SSH to mirror source into `/home/zyx/robotics_ws/src/` on targets.
 4. Each target builds locally with `colcon build`; build and install directories never cross architectures.
 
 Remote source trees are mirrors of the macOS authority. Do not edit them manually.
