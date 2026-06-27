@@ -18,6 +18,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 manifest = Path(sys.argv[2])
 failures = []
+protected = set()
 checked = 0
 
 for line_no, raw_line in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
@@ -30,6 +31,12 @@ for line_no, raw_line in enumerate(manifest.read_text(encoding="utf-8").splitlin
         failures.append(f"{manifest}:{line_no}: malformed manifest line")
         continue
 
+    protected.add(rel_path)
+    if expected == "LOCK_MANIFEST":
+        if rel_path != "harness/lock-manifest.sha256":
+            failures.append(f"{manifest}:{line_no}: LOCK_MANIFEST must target harness/lock-manifest.sha256")
+        continue
+
     path = root / rel_path
     if not path.is_file():
         failures.append(f"{rel_path}: missing")
@@ -39,6 +46,15 @@ for line_no, raw_line in enumerate(manifest.read_text(encoding="utf-8").splitlin
     checked += 1
     if actual != expected:
         failures.append(f"{rel_path}: hash mismatch")
+
+harness_dir = root / "harness"
+if harness_dir.is_dir():
+    for path in sorted(harness_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        rel_path = path.relative_to(root).as_posix()
+        if rel_path not in protected:
+            failures.append(f"{rel_path}: unprotected harness file")
 
 if failures:
     print("FAIL harness lock verification failed", file=sys.stderr)

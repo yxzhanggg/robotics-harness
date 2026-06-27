@@ -1,6 +1,6 @@
 # Harness Lock
 
-This harness baseline is locked.
+This harness operations baseline is locked.
 
 Future sessions must not modify protected harness files unless the user explicitly requests a harness unlock or harness evolution task.
 
@@ -8,14 +8,21 @@ Protected files are listed in `harness/lock-manifest.sha256`. `harness/check.sh`
 
 Allowed without unlocking:
 
-- Add new project packages outside the protected file list.
-- Edit robot project source that is not part of the locked harness baseline.
-- Add project documentation that does not change harness rules.
+- Add or edit robot project packages under `ros2_ws/src/`.
+- Edit robot behavior, algorithms, drivers, tests, package README files, and project documentation.
+- Add shared configuration under `config/` when it does not require changing harness deployment rules.
 
 Requires explicit unlock:
 
 - Any change under `harness/`.
-- Changes to `AGENTS.md`, `Makefile`, `.gitignore`, core README/docs listed in the manifest.
-- Changes to locked platform packages: `teleop_joy` and `cmd_vel_watchdog`.
+- Changes to `AGENTS.md`, because it defines the future-session operating guardrails.
+- Changes to `Makefile`, because it is the harness command entrypoint.
+
+Not protected by this lock:
+
+- `ros2_ws/src/**`
+- `docs/**`
+- `config/**`
+- package source files, package tests, package launch files, and package README files.
 
 This is an accidental-change guardrail, not a security boundary. A user can still deliberately unlock files and update the manifest.
