@@ -1,6 +1,7 @@
 # Configuration Layout
 
-This directory is reserved for layered ROS2 configuration.
+This directory is reserved for layered ROS2 configuration notes and future
+harness-managed config.
 
 - `shared/`: parameters and launch-time configuration that apply to every robot or station.
 - `per_robot/atlas/`: atlas-specific calibration, limits, and overrides.
@@ -12,4 +13,11 @@ Layering convention for future packages:
 2. Load the per-robot override for the target logical device second.
 3. Keep machine-specific calibration out of shared files.
 
-No real robot parameters are stored in this scaffold.
+Deployable runtime parameters now live in the `robotics_bringup` package because
+the current harness synchronizes only `ros2_ws/src/` to Ubuntu targets. Keep the
+same layering semantics there:
+
+- `robotics_bringup/config/shared/`
+- `robotics_bringup/config/per_device/nexus/`
+- `robotics_bringup/config/per_robot/atlas/`
+- `robotics_bringup/config/per_robot/vector/`

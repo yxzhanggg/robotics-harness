@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policy version="0.2.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <profiles>
+    <profile ns="/" node="joy_node">
+      <topics publish="/joy" subscribe="ALLOW"/>
+      <services reply="ALLOW" request="ALLOW"/>
+      <actions call="ALLOW" execute="ALLOW"/>
+    </profile>
+    <profile ns="/" node="multi_robot_teleop">
+      <topics publish="/atlas/cmd_vel,/vector/cmd_vel,/atlas/teleop_estop,/vector/teleop_estop,/multi_robot_teleop/status" subscribe="/joy"/>
+      <services reply="ALLOW" request="ALLOW"/>
+      <actions call="ALLOW" execute="ALLOW"/>
+    </profile>
+    <profile ns="/" node="rosout_collector">
+      <topics publish="ALLOW" subscribe="/rosout"/>
+      <services reply="ALLOW" request="ALLOW"/>
+      <actions call="ALLOW" execute="ALLOW"/>
+    </profile>
+  </profiles>
+</policy>

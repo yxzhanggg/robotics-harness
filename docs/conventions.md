@@ -28,17 +28,36 @@ Current teleoperation packages are deployment examples:
 
 - `teleop_joy` belongs to the `nexus` package group.
 - `cmd_vel_watchdog` belongs to the `robots` package group.
+- `robotics_bringup` belongs to the `shared` package group because all devices
+  need role-specific launch and parameter assets.
+- `robotics_fleet_ops` belongs to the `shared` package group because log
+  bundling, systemd service rendering, and security checks are target-local
+  operations that must work on ros-base machines.
 - No `robot_interfaces` package exists yet because the teleoperation path uses standard `geometry_msgs/msg/Twist`.
 
 ## Command Velocity Safety
 
-`/cmd_vel` is operator intent and is not a safe actuator input.
+`/<robot>/cmd_vel` is operator intent and is not a safe actuator input.
 
-Execution-side drivers must subscribe only to `/cmd_vel_safe`, after commands pass through `cmd_vel_watchdog`. Drivers must never subscribe directly to `/cmd_vel`.
+Execution-side drivers must subscribe only to `/<robot>/cmd_vel_safe`, after
+commands pass through `cmd_vel_watchdog`. Drivers must never subscribe directly
+to `/<robot>/cmd_vel`.
 
 ## Configuration Layering
 
 Load `config/shared/` defaults first. Load `config/per_robot/<device>/` overrides second. Do not put robot-specific calibration in shared config.
+
+Deployable runtime configuration lives in `robotics_bringup/config/` so the
+selected packages carry their parameters to `/home/zyx/robotics_ws/src/` through
+the existing harness source mirror. The repository-level `config/` directory
+remains for non-deployed planning notes and future harness-managed config.
+
+## Runtime Operations
+
+Use `robotics_bringup` launch files for role-specific process composition.
+Use `robotics_fleet_ops fleet_ops` for coordinated SSH/tmux startup, log
+bundling, user-level systemd service units, and SROS2 checks. These tools must
+be run on Ubuntu targets after deployment and build, not on macOS.
 
 ## Commits
 

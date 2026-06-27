@@ -61,7 +61,9 @@ devices:
       exclude_packages: []
 
 package_groups:
-  shared: []
+  shared:
+    - robotics_bringup
+    - robotics_fleet_ops
   nexus:
     - teleop_joy
   robots:

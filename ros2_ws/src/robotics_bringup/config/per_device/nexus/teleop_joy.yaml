@@ -1,0 +1,7 @@
+joy_node:
+  ros__parameters:
+    device_id: 0
+
+multi_robot_teleop:
+  ros__parameters:
+    selected_robot: atlas

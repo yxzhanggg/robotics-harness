@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -33,16 +35,22 @@ def generate_launch_description():
         output='screen',
     )
 
+    selected_robot_arg = DeclareLaunchArgument(
+        'selected_robot',
+        default_value='atlas',
+        description='Initial robot target: atlas or vector.',
+    )
+
     teleop_node = Node(
-        package='teleop_twist_joy',
-        executable='teleop_node',
-        name='teleop_twist_joy_node',
-        parameters=[config_file],
-        remappings=[('cmd_vel', '/cmd_vel')],
+        package='teleop_joy',
+        executable='multi_robot_teleop',
+        name='multi_robot_teleop',
+        parameters=[config_file, {'selected_robot': LaunchConfiguration('selected_robot')}],
         output='screen',
     )
 
     return LaunchDescription([
+        selected_robot_arg,
         joy_node,
         teleop_node,
     ])

@@ -1,0 +1,5 @@
+cmd_vel_watchdog:
+  ros__parameters:
+    max_linear_x: 0.45
+    max_angular_z: 1.2
+    timeout_sec: 0.45

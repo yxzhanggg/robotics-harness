@@ -1,0 +1,5 @@
+atlas:
+  wheel_base_m: 0.0
+  wheel_radius_m: 0.0
+  encoder_ticks_per_revolution: 0
+  notes: "Placeholder calibration values; replace before enabling motor drivers."

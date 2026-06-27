@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policy version="0.2.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <profiles>
+    <profile ns="/atlas" node="cmd_vel_watchdog">
+      <topics publish="/atlas/cmd_vel_safe,/atlas/cmd_vel_watchdog/status" subscribe="/atlas/cmd_vel,/atlas/teleop_estop"/>
+      <services reply="ALLOW" request="ALLOW"/>
+      <actions call="ALLOW" execute="ALLOW"/>
+    </profile>
+    <profile ns="/vector" node="cmd_vel_watchdog">
+      <topics publish="/vector/cmd_vel_safe,/vector/cmd_vel_watchdog/status" subscribe="/vector/cmd_vel,/vector/teleop_estop"/>
+      <services reply="ALLOW" request="ALLOW"/>
+      <actions call="ALLOW" execute="ALLOW"/>
+    </profile>
+  </profiles>
+</policy>

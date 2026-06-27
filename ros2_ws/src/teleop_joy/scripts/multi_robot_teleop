@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+from teleop_joy.multi_robot_teleop import main
+
+
+if __name__ == "__main__":
+    main()

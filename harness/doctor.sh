@@ -8,10 +8,6 @@ source "${SCRIPT_DIR}/lib.sh"
 TARGET="${1:-all}"
 TIME_WARN_SECONDS="${TIME_WARN_SECONDS:-2}"
 
-controller_epoch() {
-  date +%s
-}
-
 abs_diff() {
   local a="$1"
   local b="$2"
@@ -20,6 +16,41 @@ abs_diff() {
     diff=$((-diff))
   fi
   printf '%s\n' "${diff}"
+}
+
+clock_probe() {
+  local host="$1"
+  local start
+  local remote_time
+  local end
+  local rtt
+  local drift
+  local midpoint
+  local offset
+
+  start="$(date +%s)"
+  remote_time="$(ssh_bash "${host}" "date +%s")"
+  end="$(date +%s)"
+
+  if [[ ! "${remote_time}" =~ ^[0-9]+$ ]]; then
+    printf 'status=fail remote_time=%s\n' "${remote_time:-unset}"
+    return 0
+  fi
+
+  if [[ "${remote_time}" -lt "${start}" ]]; then
+    drift=$((start - remote_time))
+  elif [[ "${remote_time}" -gt "${end}" ]]; then
+    drift=$((remote_time - end))
+  else
+    drift=0
+  fi
+
+  rtt=$((end - start))
+  midpoint=$(((start + end) / 2))
+  offset=$((remote_time - midpoint))
+
+  printf 'status=ok drift=%s offset=%s rtt=%s remote_time=%s local_start=%s local_end=%s\n' \
+    "${drift}" "${offset}" "${rtt}" "${remote_time}" "${start}" "${end}"
 }
 
 check_device() {
@@ -32,7 +63,7 @@ check_device() {
   local remote_ws
   local remote_ws_expr
   local ros_setup
-  local ctl_time
+  local clock_report
   local remote_report
 
   host="$(ssh_host_for "${device}")"
@@ -50,7 +81,7 @@ check_device() {
   fi
   pass "${device}: SSH reachable"
 
-  ctl_time="$(controller_epoch)"
+  clock_report="$(clock_probe "${host}")"
   remote_report="$(ssh_bash "${host}" "set -euo pipefail
 if [ -d /opt/ros/${distro} ]; then echo ROS_DIR=present; else echo ROS_DIR=missing; fi
 if [ -f /opt/ros/${distro}/setup.bash ]; then ${ros_setup} fi
@@ -62,7 +93,6 @@ echo ROS_VARIANT_EXPECTED=${ros_variant}
 if command -v rviz2 >/dev/null 2>&1; then echo RVIZ2=present; else echo RVIZ2=missing; fi
 if ros2 interface show std_msgs/msg/String >/dev/null 2>&1; then echo STD_MSGS_STRING=present; else echo STD_MSGS_STRING=missing; fi
 if ros2 topic --help >/dev/null 2>&1; then echo ROS2_TOPIC_CLI=present; else echo ROS2_TOPIC_CLI=missing; fi
-echo EPOCH=\$(date +%s)
 if command -v rosdep >/dev/null 2>&1; then echo ROSDEP_CMD=present; else echo ROSDEP_CMD=missing; fi
 if [ -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then echo ROSDEP_INIT=present; else echo ROSDEP_INIT=missing; fi
 if [ -d \"\$HOME/.ros/rosdep/sources.cache\" ]; then echo ROSDEP_CACHE=present; else echo ROSDEP_CACHE=missing; fi
@@ -137,14 +167,20 @@ echo META_COUNT=\${META_COUNT}
     warn "${device}: remote shell RMW_IMPLEMENTATION=${remote_rmw:-unset}; harness will export ${RMW_IMPLEMENTATION} for managed commands"
   fi
 
-  local remote_time
-  remote_time="$(awk -F= '/^EPOCH=/{print $2}' <<<"${remote_report}")"
+  local clock_status
   local drift
-  drift="$(abs_diff "${ctl_time}" "${remote_time:-0}")"
-  if [[ "${drift}" -le "${TIME_WARN_SECONDS}" ]]; then
-    pass "${device}: clock drift ${drift}s"
+  local offset
+  local rtt
+  clock_status="$(awk '{for (i=1; i<=NF; i++) if ($i ~ /^status=/) {sub(/^status=/, "", $i); print $i}}' <<<"${clock_report}")"
+  drift="$(awk '{for (i=1; i<=NF; i++) if ($i ~ /^drift=/) {sub(/^drift=/, "", $i); print $i}}' <<<"${clock_report}")"
+  offset="$(awk '{for (i=1; i<=NF; i++) if ($i ~ /^offset=/) {sub(/^offset=/, "", $i); print $i}}' <<<"${clock_report}")"
+  rtt="$(awk '{for (i=1; i<=NF; i++) if ($i ~ /^rtt=/) {sub(/^rtt=/, "", $i); print $i}}' <<<"${clock_report}")"
+  if [[ "${clock_status}" != "ok" ]]; then
+    warn "${device}: clock probe failed (${clock_report})"
+  elif [[ "${drift}" -le "${TIME_WARN_SECONDS}" ]]; then
+    pass "${device}: clock drift ${drift}s (offset≈${offset}s, ssh_rtt≈${rtt}s)"
   else
-    warn "${device}: clock drift ${drift}s; install/enable chrony, especially on Raspberry Pi without hardware RTC"
+    warn "${device}: clock drift at least ${drift}s (offset≈${offset}s, ssh_rtt≈${rtt}s); install/enable chrony, especially on Raspberry Pi without hardware RTC"
   fi
 
   grep -q '^ROSDEP_CMD=present$' <<<"${remote_report}" \
