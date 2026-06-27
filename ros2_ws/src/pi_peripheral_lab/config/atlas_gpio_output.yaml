@@ -1,0 +1,6 @@
+/pin_lab/gpio_output_node:
+  ros__parameters:
+    dry_run: true
+    gpio_bcm: 17
+    pattern: square
+    rate_hz: 2.0

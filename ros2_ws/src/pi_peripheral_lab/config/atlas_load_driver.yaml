@@ -1,0 +1,6 @@
+/pin_lab/load_driver_node:
+  ros__parameters:
+    dry_run: true
+    gate_gpio_bcm: 18
+    frequency_hz: 200.0
+    duty_cycle: 0.0

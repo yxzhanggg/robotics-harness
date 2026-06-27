@@ -1,0 +1,9 @@
+/pin_lab/dac_output_node:
+  ros__parameters:
+    dry_run: true
+    backend: dry
+    address: "0x60"
+    reference_voltage: 3.3
+    waveform: triangle
+    frequency_hz: 0.5
+    update_hz: 20.0

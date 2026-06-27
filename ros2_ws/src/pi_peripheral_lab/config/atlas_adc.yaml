@@ -1,0 +1,8 @@
+/pin_lab/adc_reader_node:
+  ros__parameters:
+    dry_run: true
+    backend: dry
+    channel: 0
+    reference_voltage: 3.3
+    bits: 12
+    sample_rate_hz: 10.0

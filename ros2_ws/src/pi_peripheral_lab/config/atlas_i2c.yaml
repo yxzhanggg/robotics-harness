@@ -1,0 +1,6 @@
+/pin_lab/i2c_probe_node:
+  ros__parameters:
+    dry_run: true
+    bus: 1
+    dry_addresses: "0x48 0x60"
+    rate_hz: 0.2

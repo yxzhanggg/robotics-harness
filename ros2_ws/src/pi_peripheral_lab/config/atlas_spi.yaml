@@ -1,0 +1,9 @@
+/pin_lab/spi_wave_node:
+  ros__parameters:
+    dry_run: true
+    bus: 0
+    device: 0
+    max_speed_hz: 500000
+    mode: 0
+    payload_hex: "0xAA 0x55"
+    rate_hz: 1.0

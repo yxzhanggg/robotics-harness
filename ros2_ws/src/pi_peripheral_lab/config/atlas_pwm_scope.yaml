@@ -1,0 +1,8 @@
+/pin_lab/pwm_scope_node:
+  ros__parameters:
+    dry_run: true
+    gpio_bcm: 18
+    frequency_hz: 100.0
+    duty_cycle: 0.5
+    min_frequency_hz: 10.0
+    max_frequency_hz: 1000.0

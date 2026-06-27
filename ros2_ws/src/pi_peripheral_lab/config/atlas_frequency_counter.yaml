@@ -1,0 +1,6 @@
+/pin_lab/frequency_counter_node:
+  ros__parameters:
+    dry_run: true
+    gpio_bcm: 17
+    publish_hz: 1.0
+    dry_signal_hz: 10.0

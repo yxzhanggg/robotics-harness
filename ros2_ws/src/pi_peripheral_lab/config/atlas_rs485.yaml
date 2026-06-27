@@ -1,0 +1,14 @@
+/pin_lab/rs485_sender_node:
+  ros__parameters:
+    dry_run: true
+    port: dry_rs485_lab
+    baud_rate: 115200
+    address: 1
+    payload: rs485-lab
+    rate_hz: 1.0
+/pin_lab/rs485_receiver_node:
+  ros__parameters:
+    dry_run: true
+    port: dry_rs485_lab
+    baud_rate: 115200
+    poll_hz: 20.0

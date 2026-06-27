@@ -1,0 +1,9 @@
+/pin_lab/joy_control_mapper_node:
+  ros__parameters:
+    dry_run: true
+    duty_axis: 0
+    frequency_axis: 3
+    trigger_axis: 5
+    min_frequency_hz: 10.0
+    max_frequency_hz: 1000.0
+    reference_voltage: 3.3

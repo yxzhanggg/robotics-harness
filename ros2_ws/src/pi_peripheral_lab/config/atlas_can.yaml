@@ -1,0 +1,15 @@
+/pin_lab/can_sender_node:
+  ros__parameters:
+    dry_run: true
+    channel: dry_can_lab
+    bitrate: 500000
+    identifier: "0x123"
+    extended: false
+    payload_hex: "0x50 0x49"
+    rate_hz: 1.0
+/pin_lab/can_receiver_node:
+  ros__parameters:
+    dry_run: true
+    channel: dry_can_lab
+    bitrate: 500000
+    poll_hz: 20.0

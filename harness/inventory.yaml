@@ -68,5 +68,7 @@ package_groups:
     - teleop_joy
   robots:
     - cmd_vel_watchdog
-  atlas: []
-  vector: []
+  atlas:
+    - pi_peripheral_lab
+  vector:
+    - pi_peripheral_lab

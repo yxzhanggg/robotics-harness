@@ -1,0 +1,6 @@
+/pin_lab/gpio_handshake_peer_node:
+  ros__parameters:
+    dry_run: true
+    request_gpio_bcm: 27
+    ack_gpio_bcm: 22
+    poll_hz: 50.0

@@ -1,0 +1,13 @@
+/pin_lab/uart_tx_node:
+  ros__parameters:
+    dry_run: true
+    port: dry_uart_atlas_vector
+    baud_rate: 115200
+    payload: pi_peripheral_lab
+    rate_hz: 1.0
+/pin_lab/uart_rx_node:
+  ros__parameters:
+    dry_run: true
+    port: dry_uart_atlas_vector
+    baud_rate: 115200
+    poll_hz: 20.0
