@@ -108,15 +108,19 @@ echo META_COUNT=\${META_COUNT}
 
   printf '%s\n' "${remote_report}" | sed "s/^/${device}: /"
 
-  grep -q '^ROS_DIR=present$' <<<"${remote_report}" \
-    && pass "${device}: /opt/ros/${distro} exists" \
-    || fail "${device}: /opt/ros/${distro} missing"
+  if grep -q '^ROS_DIR=present$' <<<"${remote_report}"; then
+    pass "${device}: /opt/ros/${distro} exists"
+  else
+    fail "${device}: /opt/ros/${distro} missing"
+  fi
 
   local ros_dist
   ros_dist="$(awk -F= '/^ROS_DISTRO=/{print $2}' <<<"${remote_report}")"
-  [[ "${ros_dist}" == "${distro}" ]] \
-    && pass "${device}: ROS_DISTRO=${ros_dist}" \
-    || fail "${device}: expected ROS_DISTRO=${distro}, got ${ros_dist:-unset}"
+  if [[ "${ros_dist}" == "${distro}" ]]; then
+    pass "${device}: ROS_DISTRO=${ros_dist}"
+  else
+    fail "${device}: expected ROS_DISTRO=${distro}, got ${ros_dist:-unset}"
+  fi
 
   local remote_arch
   remote_arch="$(awk -F= '/^ARCH=/{print $2}' <<<"${remote_report}")"
@@ -132,9 +136,11 @@ echo META_COUNT=\${META_COUNT}
   pass "${device}: inventory ros_variant=${ros_variant}"
   case "${ros_variant}" in
     desktop)
-      grep -q '^RVIZ2=present$' <<<"${remote_report}" \
-        && pass "${device}: desktop marker rviz2 present" \
-        || warn "${device}: inventory expects desktop ROS install, but rviz2 was not found"
+      if grep -q '^RVIZ2=present$' <<<"${remote_report}"; then
+        pass "${device}: desktop marker rviz2 present"
+      else
+        warn "${device}: inventory expects desktop ROS install, but rviz2 was not found"
+      fi
       ;;
     base)
       pass "${device}: ros-base target; desktop-only packages are not assumed"
@@ -144,12 +150,16 @@ echo META_COUNT=\${META_COUNT}
       ;;
   esac
 
-  grep -q '^STD_MSGS_STRING=present$' <<<"${remote_report}" \
-    && pass "${device}: std_msgs/msg/String available" \
-    || fail "${device}: std_msgs/msg/String missing"
-  grep -q '^ROS2_TOPIC_CLI=present$' <<<"${remote_report}" \
-    && pass "${device}: ros2 topic CLI available" \
-    || fail "${device}: ros2 topic CLI missing"
+  if grep -q '^STD_MSGS_STRING=present$' <<<"${remote_report}"; then
+    pass "${device}: std_msgs/msg/String available"
+  else
+    fail "${device}: std_msgs/msg/String missing"
+  fi
+  if grep -q '^ROS2_TOPIC_CLI=present$' <<<"${remote_report}"; then
+    pass "${device}: ros2 topic CLI available"
+  else
+    fail "${device}: ros2 topic CLI missing"
+  fi
 
   local remote_domain
   remote_domain="$(awk -F= '/^ROS_DOMAIN_ID=/{print $2}' <<<"${remote_report}")"
@@ -183,15 +193,21 @@ echo META_COUNT=\${META_COUNT}
     warn "${device}: clock drift at least ${drift}s (offset≈${offset}s, ssh_rtt≈${rtt}s); install/enable chrony, especially on Raspberry Pi without hardware RTC"
   fi
 
-  grep -q '^ROSDEP_CMD=present$' <<<"${remote_report}" \
-    && pass "${device}: rosdep command present" \
-    || fail "${device}: rosdep command missing"
-  grep -q '^ROSDEP_INIT=present$' <<<"${remote_report}" \
-    && pass "${device}: rosdep initialized" \
-    || warn "${device}: rosdep init file missing"
-  grep -q '^ROSDEP_CACHE=present$' <<<"${remote_report}" \
-    && pass "${device}: rosdep cache present" \
-    || warn "${device}: rosdep update cache missing"
+  if grep -q '^ROSDEP_CMD=present$' <<<"${remote_report}"; then
+    pass "${device}: rosdep command present"
+  else
+    fail "${device}: rosdep command missing"
+  fi
+  if grep -q '^ROSDEP_INIT=present$' <<<"${remote_report}"; then
+    pass "${device}: rosdep initialized"
+  else
+    warn "${device}: rosdep init file missing"
+  fi
+  if grep -q '^ROSDEP_CACHE=present$' <<<"${remote_report}"; then
+    pass "${device}: rosdep cache present"
+  else
+    warn "${device}: rosdep update cache missing"
+  fi
 
   local groups_line
   groups_line="$(awk -F= '/^GROUPS=/{print $2}' <<<"${remote_report}")"
@@ -201,9 +217,11 @@ echo META_COUNT=\${META_COUNT}
     else
       warn "${device}: user is not in input group; reading DualSense joystick may fail"
     fi
-    grep -q '^JOYSTICKS=present$' <<<"${remote_report}" \
-      && pass "${device}: /dev/input/js* present" \
-      || warn "${device}: no /dev/input/js* found; connect DualSense if testing teleop input"
+    if grep -q '^JOYSTICKS=present$' <<<"${remote_report}"; then
+      pass "${device}: /dev/input/js* present"
+    else
+      warn "${device}: no /dev/input/js* found; connect DualSense if testing teleop input"
+    fi
   else
     if [[ " ${groups_line} " == *" dialout "* ]]; then
       pass "${device}: user is in dialout group"

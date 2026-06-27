@@ -414,6 +414,7 @@ ssh_quick() {
   local host="$1"
   shift
   # shellcheck disable=SC2086
+  # shellcheck disable=SC2029
   ssh ${SSH_OPTS} "${host}" "$@"
 }
 

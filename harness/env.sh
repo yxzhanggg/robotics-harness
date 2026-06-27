@@ -7,7 +7,8 @@ export RMW_IMPLEMENTATION="${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}"
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export HARNESS_DIR
-export PROJECT_ROOT="$(cd "${HARNESS_DIR}/.." && pwd)"
+PROJECT_ROOT="$(cd "${HARNESS_DIR}/.." && pwd)"
+export PROJECT_ROOT
 export LOCAL_ROS_WS="${PROJECT_ROOT}/ros2_ws"
 export LOCAL_ROS_SRC="${LOCAL_ROS_WS}/src"
 export DEFAULT_REMOTE_WS="/home/zyx/robotics_ws"
