@@ -9,6 +9,8 @@ TARGET="${1:-}"
 [[ -n "${TARGET}" ]] || die "usage: harness/check.sh <device|group>"
 
 local_lint() {
+  "${SCRIPT_DIR}/lock-verify.sh"
+
   info "local: running best-effort lint"
   export PYTHONPYCACHEPREFIX="${TMPDIR:-/tmp}/robotics_harness_pycache"
 

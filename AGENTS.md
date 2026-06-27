@@ -92,6 +92,8 @@ Execution-side drivers must subscribe to `/cmd_vel_safe`, never directly to `/cm
 ## Harness Engineering Principles
 
 - `AGENTS.md` is the context authority for future sessions.
+- The harness baseline is locked. Do not modify protected files listed in `harness/lock-manifest.sha256` unless the user explicitly asks to unlock or evolve the harness.
+- `harness/check.sh` verifies the harness lock before deploy, build, or test work begins.
 - A change is not complete until `harness/check.sh <device|group>` passes for the affected device or group.
 - All scripts must be idempotent and return non-zero on failure.
 - Do not modify target system files outside `/home/zyx/robotics_ws` unless a future task explicitly requests it.
